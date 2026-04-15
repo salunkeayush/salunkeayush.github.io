@@ -7,81 +7,74 @@ export function createScene(canvas) {
   renderer.shadowMap.enabled = true
   renderer.shadowMap.type = THREE.PCFSoftShadowMap
   renderer.toneMapping = THREE.ACESFilmicToneMapping
-  renderer.toneMappingExposure = 1.2
+  renderer.toneMappingExposure = 1.1
 
   const scene = new THREE.Scene()
-  scene.background = new THREE.Color(0x06060f)
-  scene.fog = new THREE.FogExp2(0x06060f, 0.04)
+  scene.background = new THREE.Color(0xd6e4f0)
+  scene.fog = new THREE.Fog(0xd6e4f0, 20, 40)
 
   const camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 100)
   camera.position.set(0, 3, 8)
   camera.lookAt(0, 0, 0)
 
-  // --- Lighting ---
+  // --- Lighting: bright office daylight ---
 
-  // Hemisphere: cool sky / warm ground
-  scene.add(new THREE.HemisphereLight(0x334466, 0x221a10, 1.2))
+  // Sky hemisphere: daylight sky above / warm floor bounce below
+  scene.add(new THREE.HemisphereLight(0xc8dff5, 0xe8d5b0, 1.8))
 
-  // Ambient fill
-  scene.add(new THREE.AmbientLight(0x111133, 2.5))
+  // Bright ambient fill
+  scene.add(new THREE.AmbientLight(0xfff8f0, 2.0))
 
-  // Main ceiling directional light with shadows
-  const sunLight = new THREE.DirectionalLight(0x8899ff, 2.5)
-  sunLight.position.set(2, 10, 4)
-  sunLight.castShadow = true
-  sunLight.shadow.mapSize.set(2048, 2048)
-  sunLight.shadow.camera.near = 0.1
-  sunLight.shadow.camera.far = 40
-  sunLight.shadow.camera.left = -10
-  sunLight.shadow.camera.right = 10
-  sunLight.shadow.camera.top = 10
-  sunLight.shadow.camera.bottom = -10
-  sunLight.shadow.bias = -0.001
-  scene.add(sunLight)
+  // Main sun/window directional light
+  const sun = new THREE.DirectionalLight(0xfff5e0, 3.5)
+  sun.position.set(6, 10, 4)
+  sun.castShadow = true
+  sun.shadow.mapSize.set(2048, 2048)
+  sun.shadow.camera.near = 0.1
+  sun.shadow.camera.far = 50
+  sun.shadow.camera.left = -12
+  sun.shadow.camera.right = 12
+  sun.shadow.camera.top = 12
+  sun.shadow.camera.bottom = -12
+  sun.shadow.bias = -0.001
+  sun.shadow.radius = 3
+  scene.add(sun)
 
-  // Desk accent light (blue-purple)
-  const deskLight = new THREE.PointLight(0x667eea, 4, 7)
-  deskLight.position.set(0, 3.5, -1.5)
-  scene.add(deskLight)
+  // Soft fill from opposite side (bounce light)
+  const fill = new THREE.DirectionalLight(0xe0eeff, 1.2)
+  fill.position.set(-4, 6, -2)
+  scene.add(fill)
 
-  // Bookshelf accent (warm purple)
-  const shelfLight = new THREE.PointLight(0x9966cc, 3, 6)
-  shelfLight.position.set(-5, 3, -4)
-  scene.add(shelfLight)
+  // Overhead office ceiling lights (strip lights)
+  ;[[-3, 0], [3, 0], [0, -3]].forEach(([x, z]) => {
+    const strip = new THREE.PointLight(0xfff8ee, 1.5, 8)
+    strip.position.set(x, 7.5, z)
+    scene.add(strip)
+  })
 
-  // Back-right accent (teal, education)
-  const eduLight = new THREE.PointLight(0x22bb88, 2.5, 6)
-  eduLight.position.set(5, 3.5, -5.5)
-  scene.add(eduLight)
-
-  // Front accent (amber, contact phone)
-  const frontLight = new THREE.PointLight(0xf59e0b, 3, 5)
-  frontLight.position.set(0, 2, 5)
-  scene.add(frontLight)
-
-  // Trophy orange accent
-  const trophyLight = new THREE.PointLight(0xf97316, 2.5, 4)
-  trophyLight.position.set(5, 2, 4)
-  scene.add(trophyLight)
-
-  // --- Floor ---
+  // --- Floor: warm wood planks ---
   const floorMat = new THREE.MeshStandardMaterial({
-    color: 0x0a0a1a,
-    roughness: 0.85,
-    metalness: 0.15,
+    color: 0xc8a060,
+    roughness: 0.6,
+    metalness: 0.05,
   })
   const floor = new THREE.Mesh(new THREE.PlaneGeometry(14, 14), floorMat)
   floor.rotation.x = -Math.PI / 2
   floor.receiveShadow = true
   scene.add(floor)
 
-  // Grid on floor for depth perception
-  const grid = new THREE.GridHelper(14, 20, 0x222244, 0x151530)
-  grid.position.y = 0.001
-  scene.add(grid)
+  // Floor plank lines
+  const plankMat = new THREE.MeshBasicMaterial({ color: 0xaa8844 })
+  for (let i = -6; i <= 6; i += 0.7) {
+    const plank = new THREE.Mesh(new THREE.PlaneGeometry(14, 0.015), plankMat)
+    plank.rotation.x = -Math.PI / 2
+    plank.position.set(0, 0.001, i)
+    scene.add(plank)
+  }
 
-  // --- Walls ---
-  const wallMat = new THREE.MeshStandardMaterial({ color: 0x0c0c20, roughness: 0.95 })
+  // --- Walls: cream/off-white ---
+  const wallColor = 0xf2ede4
+  const wallMat = new THREE.MeshStandardMaterial({ color: wallColor, roughness: 0.9 })
 
   const backWall = new THREE.Mesh(new THREE.PlaneGeometry(14, 10), wallMat)
   backWall.position.set(0, 5, -7)
@@ -101,23 +94,56 @@ export function createScene(canvas) {
   scene.add(rightWall)
 
   // Ceiling
-  const ceilMat = new THREE.MeshStandardMaterial({ color: 0x090914, roughness: 1 })
-  const ceiling = new THREE.Mesh(new THREE.PlaneGeometry(14, 14), ceilMat)
-  ceiling.rotation.x = Math.PI / 2
-  ceiling.position.y = 8
-  scene.add(ceiling)
+  const ceilMat = new THREE.MeshStandardMaterial({ color: 0xfafafa, roughness: 1 })
+  const ceil = new THREE.Mesh(new THREE.PlaneGeometry(14, 14), ceilMat)
+  ceil.rotation.x = Math.PI / 2
+  ceil.position.y = 8
+  scene.add(ceil)
 
-  // Subtle wall edge strips (neon lines at floor/wall joint)
-  const stripMat = new THREE.MeshBasicMaterial({ color: 0x222244 })
-  const backStrip = new THREE.Mesh(new THREE.BoxGeometry(14, 0.04, 0.04), stripMat)
-  backStrip.position.set(0, 0.02, -7)
-  scene.add(backStrip)
-  const leftStrip = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.04, 14), stripMat)
-  leftStrip.position.set(-7, 0.02, 0)
-  scene.add(leftStrip)
-  const rightStrip = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.04, 14), stripMat)
-  rightStrip.position.set(7, 0.02, 0)
-  scene.add(rightStrip)
+  // Baseboard trim
+  const baseboardMat = new THREE.MeshStandardMaterial({ color: 0xe8ddd0, roughness: 0.8 })
+  ;[
+    { pos: [0, 0.05, -6.98], rot: [0, 0, 0], w: 14 },
+    { pos: [-6.98, 0.05, 0], rot: [0, Math.PI / 2, 0], w: 14 },
+    { pos: [6.98, 0.05, 0], rot: [0, -Math.PI / 2, 0], w: 14 },
+  ].forEach(({ pos, rot, w }) => {
+    const board = new THREE.Mesh(new THREE.BoxGeometry(w, 0.12, 0.04), baseboardMat)
+    board.position.set(...pos)
+    board.rotation.set(...rot)
+    scene.add(board)
+  })
+
+  // Window on right wall — emissive bright rectangle
+  const windowGlass = new THREE.Mesh(
+    new THREE.PlaneGeometry(3.5, 3),
+    new THREE.MeshStandardMaterial({ color: 0xd0e8ff, emissive: 0xd0e8ff, emissiveIntensity: 0.6, roughness: 0.1 })
+  )
+  windowGlass.rotation.y = -Math.PI / 2
+  windowGlass.position.set(6.95, 3.5, -2)
+  scene.add(windowGlass)
+
+  // Window frame
+  const frameMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.5 })
+  ;[
+    [0, 1.55, 0.08, 3.6],   // top
+    [0, -1.55, 0.08, 3.6],  // bottom
+    [-1.8, 0, 3.2, 0.08],   // left
+    [1.8, 0, 3.2, 0.08],    // right
+    [0, 0, 3.2, 0.08],      // middle vertical
+  ].forEach(([x, y, h, w]) => {
+    const bar = new THREE.Mesh(new THREE.BoxGeometry(0.06, h, 0.06), frameMat)
+    bar.rotation.y = -Math.PI / 2
+    bar.position.set(6.92, 3.5 + y, -2 + x)
+    scene.add(bar)
+  })
+
+  // Ceiling light strip geometry
+  const lightStripMat = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xfff8ee, emissiveIntensity: 0.8 })
+  ;[[-3, 0], [3, 0], [0, -3]].forEach(([x, z]) => {
+    const strip = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.04, 1.4), lightStripMat)
+    strip.position.set(x, 7.96, z)
+    scene.add(strip)
+  })
 
   window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight

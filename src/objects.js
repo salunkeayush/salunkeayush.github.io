@@ -2,288 +2,384 @@ import * as THREE from 'three'
 
 const PROXIMITY_RADIUS = 2.5
 
-function mat(color, emissive = color, emissiveIntensity = 0.3, metalness = 0.1) {
-  return new THREE.MeshStandardMaterial({ color, emissive, emissiveIntensity, roughness: 0.5, metalness })
+// Material helpers
+function woodMat(color = 0x8b5e3c) {
+  return new THREE.MeshStandardMaterial({ color, roughness: 0.7, metalness: 0.05 })
+}
+function metalMat(color = 0x888888) {
+  return new THREE.MeshStandardMaterial({ color, roughness: 0.3, metalness: 0.8 })
+}
+function plasticMat(color = 0x333333) {
+  return new THREE.MeshStandardMaterial({ color, roughness: 0.6, metalness: 0.1 })
+}
+function whiteMat(roughness = 0.85) {
+  return new THREE.MeshStandardMaterial({ color: 0xf8f5f0, roughness })
 }
 
-function box(w, h, d, color, emissive, ei) {
-  return new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat(color, emissive, ei))
-}
+function shadow(mesh) { mesh.castShadow = true; mesh.receiveShadow = true; return mesh }
+function box(w, h, d, mat) { return shadow(new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat)) }
 
-function shadow(mesh) {
-  mesh.castShadow = true
-  mesh.receiveShadow = true
-  return mesh
-}
-
+// ── DESK + MONITOR (Experience) ──────────────────────────────────────────────
 function makeDesk(scene) {
   const g = new THREE.Group()
 
-  // Desk top
-  const top = shadow(box(2.2, 0.08, 1.0, 0x1a1a3a, 0x2a2a5a, 0.1, 0.3))
+  // Desk surface — light oak
+  const top = box(2.4, 0.07, 1.1, woodMat(0xc8a060))
   top.position.y = 0.82
 
-  // Desk legs
-  const legMat = mat(0x151530, 0x151530, 0.05)
-  ;[[-0.95, -0.45], [0.95, -0.45], [-0.95, 0.45], [0.95, 0.45]].forEach(([x, z]) => {
-    const leg = shadow(new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.8, 0.06), legMat))
-    leg.position.set(x, 0.4, z)
-    g.add(leg)
+  // Desk modesty panel (front face)
+  const panel = box(2.3, 0.65, 0.04, woodMat(0xb89050))
+  panel.position.set(0, 0.48, 0.53)
+
+  // Side panels
+  ;[-1.16, 1.16].forEach(x => {
+    const side = box(0.04, 0.72, 1.1, woodMat(0xb89050))
+    side.position.set(x, 0.48, 0)
+    g.add(side)
   })
 
-  // Monitor stand
-  const stand = shadow(box(0.1, 0.35, 0.1, 0x111128, 0x111128, 0.05))
-  stand.position.set(0, 1.05, -0.22)
+  // Metal legs
+  ;[[-1.0, -0.42], [1.0, -0.42], [-1.0, 0.42], [1.0, 0.42]].forEach(([x, z]) => {
+    const leg = box(0.05, 0.78, 0.05, metalMat(0xaaaaaa))
+    leg.position.set(x, 0.39, z)
+    g.add(leg)
+  })
+  // Leg crossbar
+  const bar = box(1.96, 0.04, 0.04, metalMat(0xaaaaaa))
+  bar.position.set(0, 0.1, 0)
+  g.add(bar)
 
-  // Monitor base
-  const monBase = shadow(box(0.5, 0.04, 0.3, 0x111128, 0x111128, 0.05))
-  monBase.position.set(0, 0.88, -0.22)
+  // Monitor stand base
+  const standBase = box(0.42, 0.03, 0.32, metalMat(0x666666))
+  standBase.position.set(0, 0.87, -0.2)
 
-  // Screen bezel
-  const bezel = shadow(box(1.3, 0.85, 0.06, 0x0a0a18, 0x0a0a18, 0.05))
-  bezel.position.set(0, 1.48, -0.22)
+  // Monitor neck
+  const neck = box(0.06, 0.32, 0.06, metalMat(0x777777))
+  neck.position.set(0, 1.03, -0.22)
 
-  // Screen glow
+  // Monitor bezel
+  const bezel = box(1.35, 0.84, 0.07, plasticMat(0x222222))
+  bezel.position.set(0, 1.46, -0.22)
+
+  // Screen (glowing)
   const screen = new THREE.Mesh(
-    new THREE.PlaneGeometry(1.18, 0.73),
-    new THREE.MeshStandardMaterial({ color: 0x1a1a4a, emissive: 0x667eea, emissiveIntensity: 0.7, roughness: 0.3 })
+    new THREE.PlaneGeometry(1.22, 0.72),
+    new THREE.MeshStandardMaterial({ color: 0x1a2a4a, emissive: 0x3355aa, emissiveIntensity: 0.5, roughness: 0.2 })
   )
-  screen.position.set(0, 1.48, -0.18)
+  screen.position.set(0, 1.46, -0.18)
+  g.add(screen)
 
   // Keyboard
-  const kbd = shadow(box(0.9, 0.03, 0.32, 0x131325, 0x131325, 0.05))
-  kbd.position.set(0, 0.87, 0.2)
+  const kbd = box(0.85, 0.025, 0.3, plasticMat(0xddddcc))
+  kbd.position.set(0, 0.86, 0.2)
 
-  // Small desk lamp
-  const lampBase = shadow(box(0.08, 0.04, 0.08, 0x222244, 0x222244, 0.1))
-  lampBase.position.set(-0.7, 0.86, -0.1)
-  const lampArm = shadow(box(0.03, 0.4, 0.03, 0x222244, 0x222244, 0.1))
-  lampArm.position.set(-0.7, 1.06, -0.1)
-  const lampHead = new THREE.Mesh(
-    new THREE.SphereGeometry(0.08, 8, 8),
-    new THREE.MeshStandardMaterial({ color: 0xfff0aa, emissive: 0xfff0aa, emissiveIntensity: 1.5 })
-  )
-  lampHead.position.set(-0.7, 1.3, -0.1)
+  // Mouse
+  const mouse = box(0.09, 0.025, 0.13, plasticMat(0xccccbb))
+  mouse.position.set(0.56, 0.86, 0.18)
 
-  g.add(top, stand, monBase, bezel, screen, kbd, lampBase, lampArm, lampHead)
+  // Desk organiser cup
+  const cup = shadow(new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.06, 0.18, 10), plasticMat(0x4466aa)))
+  cup.position.set(-0.85, 0.94, -0.05)
+
+  // Mug
+  const mug = shadow(new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.05, 0.12, 10), plasticMat(0xeeddcc)))
+  mug.position.set(0.82, 0.9, -0.1)
+
+  // Small plant
+  const pot = shadow(new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.055, 0.1, 8), plasticMat(0x886644)))
+  pot.position.set(-0.6, 0.9, 0.3)
+  const plant = shadow(new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 8), new THREE.MeshStandardMaterial({ color: 0x3a8040, roughness: 0.9 })))
+  plant.position.set(-0.6, 1.02, 0.3)
+
+  g.add(top, panel, standBase, neck, bezel, kbd, mouse, cup, mug, pot, plant)
   g.position.set(0, 0, -2)
   scene.add(g)
   return { mesh: g, key: 'experience', position: new THREE.Vector3(0, 1.2, -2), label: 'Experience' }
 }
 
+// ── BOOKSHELF (Skills) ────────────────────────────────────────────────────────
 function makeBookshelf(scene) {
   const g = new THREE.Group()
 
-  // Back panel
-  const back = shadow(box(2.2, 3.2, 0.08, 0x0e0e22, 0x0e0e22, 0.05))
-  back.position.set(0, 1.6, -0.15)
+  const shelfWood = woodMat(0x6b3a1f)
 
   // Side panels
-  ;[-1.06, 1.06].forEach(x => {
-    const side = shadow(box(0.08, 3.2, 0.4, 0x131328, 0x131328, 0.05))
-    side.position.set(x, 1.6, 0)
+  ;[-1.05, 1.05].forEach(x => {
+    const side = box(0.06, 3.4, 0.36, woodMat(0x5a3015))
+    side.position.set(x, 1.7, 0)
     g.add(side)
   })
 
-  // Shelves (4 shelves)
-  ;[0.3, 1.0, 1.7, 2.4].forEach(y => {
-    const shelf = shadow(box(2.1, 0.06, 0.4, 0x1a1a35, 0x1a1a35, 0.05))
-    shelf.position.set(0, y, 0)
+  // Back panel
+  const back = box(2.04, 3.4, 0.03, woodMat(0x5a3015))
+  back.position.set(0, 1.7, -0.165)
+  g.add(back)
+
+  // Top + bottom panels
+  ;[3.38, 0.03].forEach(y => {
+    const panel = box(2.16, 0.06, 0.36, shelfWood)
+    panel.position.y = y
+    g.add(panel)
+  })
+
+  // Shelves
+  const shelfYs = [0.85, 1.65, 2.45]
+  shelfYs.forEach(y => {
+    const shelf = box(2.04, 0.05, 0.36, shelfWood)
+    shelf.position.y = y
     g.add(shelf)
   })
 
-  // Books on shelves
-  const bookColors = [0x667eea, 0x764ba2, 0x34d399, 0xf59e0b, 0xf97316, 0xe55, 0x44aaff, 0x88dd44]
-  let bi = 0
-  ;[0.6, 1.3, 2.0].forEach(y => {
-    let x = -0.85
-    while (x < 0.85) {
-      const w = 0.12 + Math.random() * 0.1
-      const h = 0.45 + Math.random() * 0.25
-      const c = bookColors[bi % bookColors.length]
+  // Books — varied heights, realistic colors
+  const bookData = [
+    [0x2244aa, 0.13], [0xaa3322, 0.14], [0x226633, 0.12], [0x885522, 0.15],
+    [0x334488, 0.13], [0x663344, 0.14], [0xaa8822, 0.11], [0x225544, 0.15],
+    [0x882244, 0.12], [0x446622, 0.14], [0x223366, 0.13], [0x994422, 0.14],
+    [0x228866, 0.12], [0x664488, 0.15], [0x886633, 0.13],
+  ]
+  const shelfBottoms = [0.88, 1.68, 2.48]
+  shelfBottoms.forEach((baseY, si) => {
+    let x = -0.9
+    let bi = si * 5
+    while (x < 0.88 && bi < bookData.length) {
+      const [color, w] = bookData[bi]
+      const h = 0.42 + Math.random() * 0.28
       const book = shadow(new THREE.Mesh(
-        new THREE.BoxGeometry(w, h, 0.28),
-        new THREE.MeshStandardMaterial({ color: c, emissive: c, emissiveIntensity: 0.15, roughness: 0.8 })
+        new THREE.BoxGeometry(w, h, 0.26),
+        new THREE.MeshStandardMaterial({ color, roughness: 0.85 })
       ))
-      book.position.set(x + w / 2, y + h / 2, 0.02)
+      book.position.set(x + w / 2, baseY + h / 2, 0)
       g.add(book)
-      x += w + 0.02
+      x += w + 0.01
       bi++
     }
   })
 
-  g.add(back)
+  // Small decorative items on top shelf
+  const plant2 = shadow(new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 8), new THREE.MeshStandardMaterial({ color: 0x2a6030, roughness: 0.9 })))
+  plant2.position.set(0.7, 3.56, 0.04)
+  const pot2 = shadow(new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.045, 0.1, 8), plasticMat(0x8b6040)))
+  pot2.position.set(0.7, 3.46, 0.04)
+  g.add(plant2, pot2)
+
   g.position.set(-5, 0, -5)
   scene.add(g)
   return { mesh: g, key: 'skills', position: new THREE.Vector3(-5, 1.5, -5), label: 'Skills' }
 }
 
+// ── WHITEBOARD (Projects) ─────────────────────────────────────────────────────
 function makeWhiteboard(scene) {
   const g = new THREE.Group()
 
+  // Wall mount bracket
+  const bracket = box(2.9, 0.08, 0.12, metalMat(0x999999))
+  bracket.position.set(0, -1.0, 0.06)
+
   // Frame
-  const frame = shadow(box(2.8, 1.9, 0.08, 0x111122, 0x111122, 0.05))
+  const frame = box(2.9, 2.0, 0.06, metalMat(0x888888))
 
-  // Board surface
+  // White board surface
   const board = new THREE.Mesh(
-    new THREE.PlaneGeometry(2.5, 1.6),
-    new THREE.MeshStandardMaterial({ color: 0x1a1a3a, emissive: 0xa78bfa, emissiveIntensity: 0.25, roughness: 0.4 })
+    new THREE.PlaneGeometry(2.72, 1.82),
+    new THREE.MeshStandardMaterial({ color: 0xfafaf8, roughness: 0.9, metalness: 0 })
   )
-  board.position.z = 0.05
+  board.position.z = 0.04
 
-  // Scribble lines (decorative)
-  ;[[-0.5, 0.3], [0.4, 0], [-0.2, -0.3], [0.6, 0.4]].forEach(([x, y]) => {
-    const line = new THREE.Mesh(
-      new THREE.PlaneGeometry(0.6 + Math.random() * 0.5, 0.03),
-      new THREE.MeshBasicMaterial({ color: 0xccaaff })
-    )
-    line.position.set(x, y, 0.06)
-    g.add(line)
+  // Marker tray
+  const tray = box(2.7, 0.06, 0.12, metalMat(0x999999))
+  tray.position.set(0, -0.95, 0.06)
+
+  // Markers on tray
+  ;[[-0.5, 0x2244cc], [0, 0x222222], [0.5, 0xcc2222]].forEach(([x, color]) => {
+    const marker = shadow(new THREE.Mesh(
+      new THREE.CylinderGeometry(0.018, 0.018, 0.22, 8),
+      new THREE.MeshStandardMaterial({ color, roughness: 0.5 })
+    ))
+    marker.rotation.z = Math.PI / 2
+    marker.position.set(x, -0.94, 0.12)
+    g.add(marker)
   })
 
-  // Tray at bottom
-  const tray = shadow(box(2.8, 0.08, 0.15, 0x111122, 0x111122, 0.05))
-  tray.position.set(0, -0.9, 0.06)
+  // Writing on board (horizontal lines like text)
+  const inkMat = new THREE.MeshBasicMaterial({ color: 0x334488 })
+  ;[0.5, 0.2, -0.1, -0.4].forEach((y, i) => {
+    const line = new THREE.Mesh(new THREE.PlaneGeometry(0.6 + (i % 2) * 0.4, 0.025), inkMat)
+    line.position.set(-0.5 + (i % 3) * 0.3, y, 0.042)
+    g.add(line)
+  })
+  // Diagram circle
+  const circle = new THREE.Mesh(
+    new THREE.RingGeometry(0.18, 0.21, 16),
+    new THREE.MeshBasicMaterial({ color: 0x2266cc, side: THREE.DoubleSide })
+  )
+  circle.position.set(0.7, 0.35, 0.042)
+  g.add(circle)
 
-  g.add(frame, board, tray)
-  g.position.set(0, 2.8, -6.9)
+  g.add(frame, board, tray, bracket)
+  g.position.set(0, 2.8, -6.92)
   scene.add(g)
   return { mesh: g, key: 'projects', position: new THREE.Vector3(0, 2.8, -6.9), label: 'Projects' }
 }
 
+// ── DIPLOMAS (Education) ──────────────────────────────────────────────────────
 function makeDiplomas(scene) {
   const g = new THREE.Group()
 
   ;[
-    { x: -0.75, color: 0x34d399, label: 'SCU' },
-    { x: 0.75, color: 0x22aa77, label: 'VIT' },
-  ].forEach(({ x, color }) => {
-    // Outer frame
-    const outer = shadow(box(1.1, 0.85, 0.04, 0x1a2a1a, color, 0.12))
-    outer.position.set(x, 0, 0)
+    { x: -0.72, title: 'SCU' },
+    { x: 0.72, title: 'VIT' },
+  ].forEach(({ x }) => {
+    // Gold frame
+    const frame = box(1.1, 0.88, 0.04, new THREE.MeshStandardMaterial({ color: 0xc8a020, roughness: 0.4, metalness: 0.7 }))
+    frame.position.set(x, 0, 0)
 
-    // Inner parchment
-    const inner = new THREE.Mesh(
-      new THREE.PlaneGeometry(0.9, 0.65),
-      new THREE.MeshStandardMaterial({ color: 0x1a2420, emissive: color, emissiveIntensity: 0.08 })
+    // Parchment inside
+    const parchment = new THREE.Mesh(
+      new THREE.PlaneGeometry(0.96, 0.74),
+      new THREE.MeshStandardMaterial({ color: 0xf5eec8, roughness: 0.95 })
     )
-    inner.position.set(x, 0, 0.03)
+    parchment.position.set(x, 0, 0.03)
 
-    // Seal dot
-    const seal = new THREE.Mesh(
-      new THREE.CircleGeometry(0.08, 12),
-      new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 0.8 })
-    )
-    seal.position.set(x, -0.16, 0.04)
+    // Horizontal text lines on parchment
+    const textMat = new THREE.MeshBasicMaterial({ color: 0x333322 })
+    ;[0.18, 0.04, -0.1].forEach(ly => {
+      const line = new THREE.Mesh(new THREE.PlaneGeometry(0.55 - Math.abs(ly) * 0.5, 0.02), textMat)
+      line.position.set(x, ly, 0.031)
+      g.add(line)
+    })
 
-    g.add(outer, inner, seal)
+    // Seal
+    const seal = shadow(new THREE.Mesh(
+      new THREE.CircleGeometry(0.09, 16),
+      new THREE.MeshStandardMaterial({ color: 0xdd4422, roughness: 0.6, metalness: 0.3 })
+    ))
+    seal.position.set(x, -0.23, 0.031)
+
+    g.add(frame, parchment, seal)
   })
 
-  g.position.set(5, 2.5, -6.6)
+  // Wall nail/mount points
+  ;[-0.72, 0.72].forEach(x => {
+    const nail = shadow(new THREE.Mesh(
+      new THREE.SphereGeometry(0.015, 6, 6),
+      metalMat(0x888888)
+    ))
+    nail.position.set(x, 0.47, 0.04)
+    g.add(nail)
+  })
+
+  g.position.set(5, 2.5, -6.65)
   scene.add(g)
-  return { mesh: g, key: 'education', position: new THREE.Vector3(5, 2.5, -6.6), label: 'Education' }
+  return { mesh: g, key: 'education', position: new THREE.Vector3(5, 2.5, -6.65), label: 'Education' }
 }
 
+// ── TROPHY (Impact) ───────────────────────────────────────────────────────────
 function makeTrophy(scene) {
   const g = new THREE.Group()
 
-  // Plinth / base
-  const plinth = shadow(box(0.9, 0.12, 0.5, 0x1a1a2e, 0x1a1a2e, 0.05))
-  plinth.position.y = 0.06
+  // Wooden plinth
+  const plinth = box(0.5, 0.06, 0.5, woodMat(0x7a4a20))
+  plinth.position.y = 0.03
+
+  // Marble base
+  const base = box(0.38, 0.08, 0.38, new THREE.MeshStandardMaterial({ color: 0xe8e0d8, roughness: 0.4, metalness: 0.1 }))
+  base.position.y = 0.1
 
   // Stem
   const stem = shadow(new THREE.Mesh(
-    new THREE.CylinderGeometry(0.06, 0.1, 0.3, 8),
-    mat(0xc07030, 0xf97316, 0.4, 0.6)
+    new THREE.CylinderGeometry(0.04, 0.07, 0.28, 10),
+    metalMat(0xd4aa30)
   ))
-  stem.castShadow = true
-  stem.position.y = 0.27
+  stem.position.y = 0.28
 
-  // Cup body
+  // Cup
   const cup = shadow(new THREE.Mesh(
-    new THREE.CylinderGeometry(0.22, 0.1, 0.45, 12),
-    mat(0xd08040, 0xf97316, 0.7, 0.7)
+    new THREE.CylinderGeometry(0.2, 0.08, 0.42, 14),
+    new THREE.MeshStandardMaterial({ color: 0xd4a820, roughness: 0.25, metalness: 0.85 })
   ))
-  cup.castShadow = true
-  cup.position.y = 0.59
+  cup.position.y = 0.58
 
-  // Cup rim
+  // Rim
   const rim = shadow(new THREE.Mesh(
-    new THREE.TorusGeometry(0.22, 0.03, 8, 16),
-    mat(0xe09050, 0xffaa44, 0.9, 0.8)
+    new THREE.TorusGeometry(0.2, 0.025, 8, 18),
+    new THREE.MeshStandardMaterial({ color: 0xe8c030, roughness: 0.2, metalness: 0.9 })
   ))
-  rim.castShadow = true
   rim.rotation.x = Math.PI / 2
-  rim.position.y = 0.82
+  rim.position.y = 0.79
 
   // Handles
   ;[-1, 1].forEach(side => {
-    const handle = new THREE.Mesh(
-      new THREE.TorusGeometry(0.1, 0.025, 6, 10, Math.PI),
-      mat(0xd08040, 0xf97316, 0.5, 0.6)
-    )
-    handle.rotation.y = side > 0 ? 0 : Math.PI
+    const handle = shadow(new THREE.Mesh(
+      new THREE.TorusGeometry(0.09, 0.022, 6, 10, Math.PI),
+      new THREE.MeshStandardMaterial({ color: 0xd4a820, roughness: 0.25, metalness: 0.85 })
+    ))
     handle.rotation.z = Math.PI / 2
-    handle.position.set(side * 0.32, 0.6, 0)
+    handle.rotation.y = side > 0 ? 0 : Math.PI
+    handle.position.set(side * 0.28, 0.58, 0)
     g.add(handle)
   })
 
-  // Stars floating above
-  ;[0, 1, 2].forEach(i => {
-    const star = new THREE.Mesh(
-      new THREE.SphereGeometry(0.03, 6, 6),
-      new THREE.MeshBasicMaterial({ color: 0xffdd44 })
-    )
-    star.position.set(Math.cos(i * 2.1) * 0.2, 1.1 + Math.sin(i * 1.3) * 0.08, Math.sin(i * 2.1) * 0.2)
-    g.add(star)
-  })
+  // Engraving plate on plinth
+  const plate = shadow(new THREE.Mesh(
+    new THREE.BoxGeometry(0.28, 0.07, 0.02),
+    new THREE.MeshStandardMaterial({ color: 0xd4aa30, roughness: 0.3, metalness: 0.7 })
+  ))
+  plate.position.set(0, 0.11, 0.2)
+  g.add(plate)
 
-  g.add(plinth, stem, cup, rim)
+  g.add(plinth, base, stem, cup, rim)
   g.position.set(5, 0.8, 4)
   scene.add(g)
   return { mesh: g, key: 'impact', position: new THREE.Vector3(5, 1.0, 4), label: 'Impact' }
 }
 
+// ── PHONE ON DESK (Contact) ───────────────────────────────────────────────────
 function makePhone(scene) {
   const g = new THREE.Group()
 
-  // Desk/surface for phone
-  const desk = shadow(box(0.7, 0.06, 0.5, 0x1a1a2e, 0x1a1a2e, 0.05))
-  desk.position.y = -0.25
-
-  // Phone body
-  const body = shadow(new THREE.Mesh(
-    new THREE.BoxGeometry(0.3, 0.58, 0.04),
-    new THREE.MeshStandardMaterial({ color: 0x111118, roughness: 0.3, metalness: 0.7 })
-  ))
-
-  // Screen glow
-  const phoneScreen = new THREE.Mesh(
-    new THREE.PlaneGeometry(0.24, 0.5),
-    new THREE.MeshStandardMaterial({ color: 0x1a1040, emissive: 0xf59e0b, emissiveIntensity: 0.9 })
-  )
-  phoneScreen.position.set(0, 0, 0.025)
-
-  // Home bar
-  const bar = new THREE.Mesh(
-    new THREE.PlaneGeometry(0.1, 0.015),
-    new THREE.MeshBasicMaterial({ color: 0xffffff })
-  )
-  bar.position.set(0, -0.21, 0.026)
-
-  // Notification dots
-  ;[[-0.06, 0.18], [0, 0.18], [0.06, 0.18]].forEach(([x, y]) => {
-    const dot = new THREE.Mesh(
-      new THREE.CircleGeometry(0.012, 8),
-      new THREE.MeshBasicMaterial({ color: 0xf59e0b })
-    )
-    dot.position.set(x, y, 0.026)
-    g.add(dot)
+  // Small side table / pedestal
+  const tableTop = box(0.65, 0.05, 0.45, woodMat(0xb89050))
+  tableTop.position.y = 0
+  ;[[-0.27, -0.17], [0.27, -0.17], [-0.27, 0.17], [0.27, 0.17]].forEach(([x, z]) => {
+    const leg = box(0.04, 0.55, 0.04, metalMat(0xaaaaaa))
+    leg.position.set(x, -0.3, z)
+    g.add(leg)
   })
 
-  g.add(desk, body, phoneScreen, bar)
-  g.position.set(0, 1.1, 4.5)
-  g.rotation.x = -0.15
+  // Phone body — slim modern smartphone
+  const body = shadow(new THREE.Mesh(
+    new THREE.BoxGeometry(0.28, 0.58, 0.025),
+    new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.15, metalness: 0.9 })
+  ))
+  body.position.set(0, 0.32, 0)
+  body.rotation.x = -0.15
+
+  // Screen
+  const phoneScreen = new THREE.Mesh(
+    new THREE.PlaneGeometry(0.24, 0.52),
+    new THREE.MeshStandardMaterial({ color: 0x1a1a2a, emissive: 0x4488ff, emissiveIntensity: 0.3, roughness: 0.1 })
+  )
+  phoneScreen.position.set(0, 0.32, 0.014)
+  phoneScreen.rotation.x = -0.15
+
+  // Camera bump
+  const cam = shadow(new THREE.Mesh(
+    new THREE.CylinderGeometry(0.022, 0.022, 0.015, 10),
+    metalMat(0x333333)
+  ))
+  cam.rotation.x = Math.PI / 2 - 0.15
+  cam.position.set(0.07, 0.56, -0.006)
+
+  // Charging cable
+  const cable = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.006, 0.006, 0.3, 6),
+    new THREE.MeshStandardMaterial({ color: 0x444444, roughness: 0.8 })
+  )
+  cable.rotation.z = Math.PI / 2
+  cable.position.set(-0.22, 0.04, -0.01)
+
+  g.add(tableTop, body, phoneScreen, cam, cable)
+  g.position.set(0, 0.83, 4.5)
   scene.add(g)
   return { mesh: g, key: 'contact', position: new THREE.Vector3(0, 1.1, 4.5), label: 'Contact' }
 }
