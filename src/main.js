@@ -56,7 +56,7 @@ async function initDesktop() {
   fill.style.width = '70%'
 
   const canvas = document.getElementById('canvas')
-  const { scene, camera, renderer } = createScene(canvas)
+  const { scene, camera, renderer, composer } = createScene(canvas)
   const objects = createObjects(scene)
   const character = await createCharacter(scene, RAPIER)
   const labels = createLabels(objects)
@@ -157,7 +157,7 @@ async function initDesktop() {
     }
 
     updateLabels(labels, camera, nearObject, zoomed)
-    renderer.render(scene, camera)
+    composer.render()
   }
   tick()
 }
