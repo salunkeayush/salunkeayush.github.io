@@ -1,40 +1,45 @@
-import { useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import PortfolioHero from "../components/ui/portfolio-hero";
-import { RoomScene } from "./components/room/RoomScene";
+import { useEffect } from "react";
+import { initSmoothScroll, ScrollTrigger } from "./lib/motion";
+import { useReducedMotion } from "./lib/useReducedMotion";
+import { TopNav } from "./components/chrome/TopNav";
+import { ChapterDots } from "./components/chrome/ChapterDots";
+import { CustomCursor } from "./components/chrome/CustomCursor";
+import { HeroTile } from "./components/tiles/HeroTile";
+import { StatsTile } from "./components/tiles/StatsTile";
+import { NowTile } from "./components/tiles/NowTile";
+import { ExperienceTile } from "./components/tiles/ExperienceTile";
+import { SkillsTile } from "./components/tiles/SkillsTile";
+import { PotholeTile } from "./components/tiles/PotholeTile";
+import { ProjectEduTile } from "./components/tiles/ProjectEduTile";
+import { ContactTile } from "./components/tiles/ContactTile";
 
 export default function App() {
-  const [inRoom, setInRoom] = useState(false);
+  const reduced = useReducedMotion();
+
+  useEffect(() => {
+    const dispose = initSmoothScroll(reduced);
+    const refreshTimer = window.setTimeout(() => ScrollTrigger.refresh(), 400);
+    return () => {
+      window.clearTimeout(refreshTimer);
+      dispose();
+    };
+  }, [reduced]);
 
   return (
     <>
-      <link
-        rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@700&family=Antic&display=swap"
-      />
-      <AnimatePresence mode="wait">
-        {inRoom ? (
-          <motion.div
-            key="room"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <RoomScene onClose={() => setInRoom(false)} />
-          </motion.div>
-        ) : (
-          <motion.div
-            key="hero"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <PortfolioHero onEnterRoom={() => setInRoom(true)} />
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <CustomCursor />
+      <TopNav />
+      <ChapterDots />
+      <main>
+        <HeroTile />
+        <StatsTile />
+        <NowTile />
+        <ExperienceTile />
+        <SkillsTile />
+        <PotholeTile />
+        <ProjectEduTile />
+        <ContactTile />
+      </main>
     </>
   );
 }
