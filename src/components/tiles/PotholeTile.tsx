@@ -58,12 +58,21 @@ export function PotholeTile() {
           <p className="font-mono text-[11px] tracking-[0.25em] uppercase text-pothole mb-4">
             Featured · Research
           </p>
-          <h2 className="display text-[clamp(2.5rem,6vw,5rem)] font-bold text-light">
-            {potholeProject.title}
-          </h2>
-          <p className="mt-3 font-mono text-sm text-light/60">
-            {potholeProject.subtitle}
-          </p>
+          <a
+            href={potholeProject.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            data-cursor="hover"
+            className="group inline-block"
+          >
+            <h2 className="display text-[clamp(2.5rem,6vw,5rem)] font-bold text-light group-hover:text-pothole transition-colors">
+              {potholeProject.title}
+            </h2>
+            <p className="mt-3 font-mono text-sm text-light/60 group-hover:text-light/90 transition-colors inline-flex items-center gap-2">
+              {potholeProject.subtitle}
+              <span aria-hidden className="inline-block transition-transform group-hover:translate-x-1">↗</span>
+            </p>
+          </a>
         </div>
         <div className="relative min-h-[320px]">
           {potholeProject.phases.map((ph, i) => (

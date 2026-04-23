@@ -47,16 +47,21 @@ export function ProjectEduTile() {
     >
       <div className="max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-8">
         <TiltCard>
-          <motion.article
+          <motion.a
+            href={parkSafeProject.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            data-cursor="hover"
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.4 }}
             transition={{ duration: reduced ? 0.15 : 0.7, ease: [0.22, 1, 0.36, 1] }}
-            className="relative h-full rounded-3xl p-10 text-light overflow-hidden"
+            className="group relative block h-full rounded-3xl p-10 text-light overflow-hidden"
             style={{ background: "linear-gradient(135deg, #0a84ff 0%, #64d2ff 100%)" }}
           >
-            <p className="font-mono text-[11px] tracking-[0.25em] uppercase text-light/70 mb-4">
+            <p className="font-mono text-[11px] tracking-[0.25em] uppercase text-light/70 mb-4 inline-flex items-center gap-2">
               Side project
+              <span aria-hidden className="inline-block transition-transform group-hover:translate-x-1">↗</span>
             </p>
             <h3 className="display text-4xl md:text-5xl font-bold">
               {parkSafeProject.title}
@@ -74,7 +79,7 @@ export function ProjectEduTile() {
                 </li>
               ))}
             </ul>
-          </motion.article>
+          </motion.a>
         </TiltCard>
 
         <motion.article
