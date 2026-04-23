@@ -26,7 +26,7 @@ export const now = {
   bullets: [
     "Orchestrating CI/CD for hundreds of services across global trading desks.",
     "Designed the next-gen release pipeline adopted org-wide.",
-    "Mentor of record for two junior engineers promoted this cycle.",
+    "Architecting self-serve deploys — dev to prod in under 10 minutes, zero tickets.",
   ],
 };
 
@@ -36,6 +36,7 @@ export type Experience = {
   start: string;
   end: string;
   accent: string;
+  logo: string;
   achievements: string[];
 };
 
@@ -46,6 +47,7 @@ export const experiences: Experience[] = [
     start: "Jun 2022",
     end: "Present",
     accent: "#0b2545",
+    logo: "/images/jpmc.png",
     achievements: [
       "Led redesign of deploy platform cutting release complexity ~70%.",
       "Drove rollout strategy adopted by 200+ developers across LOBs.",
@@ -58,6 +60,7 @@ export const experiences: Experience[] = [
     start: "Jul 2019",
     end: "Jun 2021",
     accent: "#ec0016",
+    logo: "/images/ubs.jpeg",
     achievements: [
       "Shaved 80% off critical pricing-service latency through profiling + cache redesign.",
       "Shipped reactive risk dashboard used by trading operations nightly.",
@@ -70,6 +73,7 @@ export const experiences: Experience[] = [
     start: "Jul 2018",
     end: "Nov 2018",
     accent: "#ec0016",
+    logo: "/images/ubs.jpeg",
     achievements: [
       "Prototyped internal tool for bulk data reconciliation across ledgers.",
       "Returned with full-time offer based on pilot adoption metrics.",
@@ -77,19 +81,75 @@ export const experiences: Experience[] = [
   },
 ];
 
-export type SkillCategory = { name: string; items: string[] };
+export type SkillItem = { name: string; slug: string };
+export type SkillCategory = { name: string; items: SkillItem[] };
 
 export const skillCategories: SkillCategory[] = [
-  { name: "Languages", items: ["TypeScript", "Python", "Java", "Go", "SQL", "Bash"] },
-  { name: "Backend & Data", items: ["Spring Boot", "Node.js", "GraphQL", "PostgreSQL", "Kafka", "Redis"] },
-  { name: "Frontend", items: ["React", "Next.js", "Tailwind", "Framer Motion", "Vite", "GSAP"] },
-  { name: "Cloud & DevOps", items: ["AWS", "Kubernetes", "Docker", "Terraform", "Jenkins", "GitHub Actions"] },
-  { name: "Observability", items: ["Prometheus", "Grafana", "Datadog", "OpenTelemetry", "Splunk", "ELK"] },
+  {
+    name: "Languages",
+    items: [
+      { name: "TypeScript", slug: "typescript" },
+      { name: "Python", slug: "python" },
+      { name: "Java", slug: "openjdk" },
+      { name: "Go", slug: "go" },
+      { name: "SQL", slug: "mysql" },
+      { name: "Bash", slug: "gnubash" },
+    ],
+  },
+  {
+    name: "Backend & Data",
+    items: [
+      { name: "Spring Boot", slug: "springboot" },
+      { name: "Node.js", slug: "nodedotjs" },
+      { name: "GraphQL", slug: "graphql" },
+      { name: "PostgreSQL", slug: "postgresql" },
+      { name: "Kafka", slug: "apachekafka" },
+      { name: "Redis", slug: "redis" },
+    ],
+  },
+  {
+    name: "Frontend",
+    items: [
+      { name: "React", slug: "react" },
+      { name: "Next.js", slug: "nextdotjs" },
+      { name: "Tailwind", slug: "tailwindcss" },
+      { name: "Framer Motion", slug: "framer" },
+      { name: "Vite", slug: "vite" },
+      { name: "GSAP", slug: "greensock" },
+    ],
+  },
+  {
+    name: "Cloud & DevOps",
+    items: [
+      { name: "Amazon Web", slug: "/images/aws.svg" },
+      { name: "Google Cloud", slug: "googlecloud" },
+      { name: "Microsoft Azure", slug: "microsoftazure" },
+      { name: "Kubernetes", slug: "kubernetes" },
+      { name: "Docker", slug: "docker" },
+      { name: "Terraform", slug: "terraform" },
+      { name: "Spinnaker", slug: "spinnaker" },
+      { name: "Harness", slug: "harness" },
+      { name: "Jenkins", slug: "jenkins" },
+      { name: "GitHub Actions", slug: "githubactions" },
+    ],
+  },
+  {
+    name: "Observability",
+    items: [
+      { name: "Prometheus", slug: "prometheus" },
+      { name: "Grafana", slug: "grafana" },
+      { name: "Datadog", slug: "datadog" },
+      { name: "OpenTelemetry", slug: "opentelemetry" },
+      { name: "Splunk", slug: "splunk" },
+      { name: "ELK", slug: "elasticsearch" },
+    ],
+  },
 ];
 
 export const potholeProject = {
   title: "Pothole Detection",
   subtitle: "Published · ICIAMR 2019",
+  url: "http://www.ijeam.com/Published%20Paper/Volume%2054/Issue%203/38.pdf",
   phases: [
     {
       label: "Problem",
@@ -110,6 +170,7 @@ export const parkSafeProject = {
   title: "ParkSafe",
   blurb: "Flask + OpenStreetMap mashup surfacing the safest legal parking near any destination, ranked by crime density.",
   stack: ["Flask", "OpenStreetMap", "Leaflet", "SQLite"],
+  url: "https://devpost.com/software/parksafe",
 };
 
 export type School = { school: string; degree: string; gpa: string; years: string };
